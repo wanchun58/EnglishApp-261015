@@ -1,786 +1,867 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEURAL-SYNC // AI 英文聽讀特訓</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            bg: '#030712',
-                            card: '#0b0f19',
-                            border: '#1e3a8a',
-                            blue: '#3b82f6',
-                            neonBlue: '#00f0ff',
-                            neonGreen: '#00ff66',
-                            neonPink: '#ff0055',
-                            neonYellow: '#fde047',
-                            darkBlue: '#172554'
-                        }
-                    },
-                    boxShadow: {
-                        'neon-blue': '0 0 15px rgba(0, 240, 255, 0.4)',
-                        'neon-green': '0 0 15px rgba(0, 255, 102, 0.4)',
-                        'neon-pink': '0 0 15px rgba(255, 0, 85, 0.4)',
-                        'cyber-panel': 'inset 0 0 20px rgba(30, 58, 138, 0.2)'
-                    }
-                }
+    <title>NEURAL_LEXICON // 賽博龐克英文聽讀特訓系統</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #030712;
+            --panel-bg: rgba(10, 15, 30, 0.85);
+            --primary: #00f0ff;
+            --primary-glow: rgba(0, 240, 255, 0.4);
+            --secondary: #7000ff;
+            --success: #00ff66;
+            --danger: #ff0055;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --border: #1e293b;
+            --border-glow: #00f0ff55;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Noto Sans TC', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 網格與掃描線背景特效 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            box-shadow: 0 4px 20px var(--primary-glow);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            color: var(--primary);
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--text-muted);
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+
+        /* 儀表板統計列 */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.05);
+        }
+
+        .stat-title {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* 主佈局 */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
             }
         }
-    </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Orbitron & Share Tech Mono -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #030712;
-            color: #f3f4f6;
-            overflow-x: hidden;
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
         }
-        .font-cyber {
-            font-family: 'Orbitron', sans-serif;
+
+        /* 訓練大卡片 */
+        .trainer-box {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 420px;
+            position: relative;
         }
-        .font-mono-tech {
+
+        .word-badge {
             font-family: 'Share Tech Mono', monospace;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-bottom: 15px;
+            align-self: center;
         }
-        /* Grid background effect */
-        .cyber-grid {
-            background-image: linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
+
+        .current-word {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 5px;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
         }
-        /* Scanline overlay */
-        .scanline {
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.3));
-            background-size: 100% 4px;
+
+        .phonetic {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
         }
-        /* Glowing neon border animation */
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
-            50% { box-shadow: 0 0 25px rgba(0, 240, 255, 0.7); }
+
+        .translation {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            margin-bottom: 15px;
+            font-weight: bold;
         }
-        .pulse-border {
-            animation: pulseGlow 2.5s infinite ease-in-out;
+
+        .example-sentence {
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            padding: 0 20px;
         }
-        /* Audio wave animation */
-        @keyframes wave {
-            0%, 100% { height: 6px; }
-            50% { height: 40px; }
+
+        /* 互動按鈕群 */
+        .action-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        .wave-bar {
-            animation: wave 1.2s infinite ease-in-out;
+
+        .cyber-btn {
+            font-family: 'Orbitron', sans-serif;
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px var(--primary-glow);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
-        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
-        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
-        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
-        .wave-bar:nth-child(6) { animation-delay: 0.5s; }
+
+        .cyber-btn:hover {
+            background: var(--primary);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .cyber-btn.record-btn {
+            border-color: var(--success);
+            color: var(--success);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+        }
+
+        .cyber-btn.record-btn:hover, .cyber-btn.record-btn.recording {
+            background: var(--success);
+            color: var(--bg-color);
+            box-shadow: 0 0 25px var(--success);
+            animation: pulse 1.5s infinite;
+        }
+
+        .cyber-btn.star-btn {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        .cyber-btn.star-btn.starred {
+            background: #ffd700;
+            color: #000;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* 辨識結果與波形回饋區 */
+        .feedback-box {
+            font-family: 'Share Tech Mono', monospace;
+            padding: 12px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.5);
+            border: 1px dashed var(--border);
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .result-correct {
+            color: var(--success);
+            font-weight: bold;
+            text-shadow: 0 0 8px var(--success);
+        }
+
+        .result-wrong {
+            color: var(--danger);
+            font-weight: bold;
+            text-shadow: 0 0 8px var(--danger);
+        }
+
+        /* 導航按鈕 */
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        /* 側邊欄：單字清單與過濾 */
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 240, 255, 0.1);
+        }
+
+        .word-list {
+            max-height: 450px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 5px;
+        }
+
+        .word-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+        }
+
+        .word-item:hover {
+            border-color: var(--primary);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        .word-item.active {
+            border-color: var(--primary);
+            background: rgba(0, 240, 255, 0.15);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .word-item-info .en {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+
+        .word-item-info .zh {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* 卷軸美化 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
     </style>
 </head>
-<body class="cyber-grid min-h-screen relative flex flex-col select-none">
-    <!-- Scanline overlay -->
-    <div class="scanline fixed inset-0 pointer-events-none z-50 opacity-40"></div>
+<body>
 
-    <!-- HEADER / NAVIGATION -->
-    <header class="border-b border-cyber-border/60 bg-cyber-card/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded bg-blue-950/80 border border-cyber-neonBlue flex items-center justify-center text-cyber-neonBlue shadow-neon-blue">
-                    <i class="fa-solid fa-microphone-lines text-xl"></i>
+    <div class="container">
+        <header>
+            <h1>NEURAL_LEXICON</h1>
+            <div class="subtitle">// 賽博龐克 AI 智慧發音與聽讀特訓系統 (100 字庫)</div>
+        </header>
+
+        <!-- 儀表板 -->
+        <div class="dashboard">
+            <div class="stat-card">
+                <div class="stat-title">SYSTEM_COMBO</div>
+                <div class="stat-value" id="comboCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">ACCURACY</div>
+                <div class="stat-value" id="accuracyRate">0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">ERROR_QUEUE</div>
+                <div class="stat-value" id="errorQueueCount" style="color: var(--danger);">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">MASTERED</div>
+                <div class="stat-value" id="masteredCount" style="color: var(--success);">0 / 100</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- 訓練主面板 -->
+            <div class="panel trainer-box">
+                <div id="wordBadge" class="word-badge">INDEX: #001 // LEVEL: 核心單字</div>
+                <div id="currentWord" class="current-word">SYNCHRONIZING</div>
+                <div id="currentPhonetic" class="phonetic">[ ... ]</div>
+                <div id="currentTranslation" class="translation">載入中...</div>
+                <div id="currentExample" class="example-sentence">"Loading example sentence..."</div>
+
+                <div class="action-group">
+                    <button class="cyber-btn" onclick="speakCurrentWord()">
+                        🔊 播放發音
+                    </button>
+                    <button id="recordBtn" class="cyber-btn record-btn" onclick="toggleRecord()">
+                        🎤 開始跟讀
+                    </button>
+                    <button id="starBtn" class="cyber-btn star-btn" onclick="toggleStarCurrent()">
+                        ⭐ 加入精選
+                    </button>
                 </div>
-                <div>
-                    <h1 class="font-cyber font-black tracking-widest text-lg text-cyber-neonBlue flex items-center gap-2">
-                        NEURAL-SYNC <span class="text-xs px-2 py-0.5 rounded bg-blue-900/50 border border-blue-500 text-blue-300 font-mono-tech">v2.4.9</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 font-mono-tech">AI 語音神經同步與發音特訓系統</p>
+
+                <div class="feedback-box" id="feedbackBox">
+                    <span style="color: var(--text-muted)">請點擊「開始跟讀」並念出上方單字進行神經語音比對</span>
+                </div>
+
+                <div class="nav-controls">
+                    <button class="cyber-btn" onclick="prevWord()">◀ 上一個</button>
+                    <button class="cyber-btn" onclick="nextWord()">下一個 ▶</button>
                 </div>
             </div>
 
-            <!-- Stats Ticker -->
-            <div class="flex items-center gap-4 bg-cyber-bg/90 border border-cyber-border px-4 py-2 rounded-lg text-xs font-mono-tech">
-                <div class="flex items-center gap-1.5 text-cyber-neonBlue" title="已練習題數">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <span>已訓: <strong id="stat-total" class="text-white">0</strong></span>
+            <!-- 側邊字庫面板 -->
+            <div class="panel">
+                <div class="sidebar-header">
+                    <h3>LEXICON DATABASE</h3>
+                    <span id="listCounter" style="font-family:'Share Tech Mono'; font-size:0.8rem; color:var(--primary);">100 Words</span>
                 </div>
-                <div class="w-px h-4 bg-cyber-border"></div>
-                <div class="flex items-center gap-1.5 text-cyber-neonGreen" title="正確率">
-                    <i class="fa-solid fa-bullseye"></i>
-                    <span>精準度: <strong id="stat-accuracy" class="text-white">100%</strong></span>
+                <div class="filter-tabs">
+                    <button class="tab-btn active" onclick="switchFilter('all', this)">全部 (100)</button>
+                    <button class="tab-btn" onclick="switchFilter('starred', this)">精選</button>
+                    <button class="tab-btn" onclick="switchFilter('errors', this)">錯題特訓</button>
                 </div>
-                <div class="w-px h-4 bg-cyber-border"></div>
-                <div class="flex items-center gap-1.5 text-cyber-neonYellow" title="連擊 Combo">
-                    <i class="fa-solid fa-bolt"></i>
-                    <span>COMBO: <strong id="stat-streak" class="text-white">0</strong></span>
+                <div class="word-list" id="wordListContainer">
+                    <!-- 動態生成 100 單字清單 -->
                 </div>
             </div>
         </div>
-    </header>
-
-    <!-- MAIN CONTAINER -->
-    <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 flex flex-col gap-6 z-10">
-
-        <!-- NAV TABS -->
-        <div class="flex border-b border-cyber-border gap-2 overflow-x-auto pb-1">
-            <button onclick="switchTab('trainer')" id="tab-trainer" class="px-5 py-2.5 font-cyber text-sm tracking-wider rounded-t-lg transition-all border-t border-x border-cyber-neonBlue bg-cyber-card text-cyber-neonBlue shadow-neon-blue flex items-center gap-2">
-                <i class="fa-solid fa-brain"></i> 語音特訓艙
-            </button>
-            <button onclick="switchTab('library')" id="tab-library" class="px-5 py-2.5 font-cyber text-sm tracking-wider rounded-t-lg transition-all border border-transparent text-slate-400 hover:text-slate-200 hover:bg-cyber-card/50 flex items-center gap-2">
-                <i class="fa-solid fa-database"></i> 數據庫與精選單字 (<span id="lib-count">0</span>)
-            </button>
-            <button onclick="switchTab('wrong')" id="tab-wrong" class="px-5 py-2.5 font-cyber text-sm tracking-wider rounded-t-lg transition-all border border-transparent text-slate-400 hover:text-slate-200 hover:bg-cyber-card/50 flex items-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation text-cyber-neonPink"></i> 錯誤矯正佇列 (<span id="wrong-count">0</span>)
-            </button>
-        </div>
-
-        <!-- ================= SECTION 1: TRAINER ================= -->
-        <section id="section-trainer" class="flex flex-col gap-6">
-            <!-- Mode Selector Bar -->
-            <div class="bg-cyber-card border border-cyber-border/80 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-cyber-panel">
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-mono-tech text-slate-400 uppercase tracking-widest"><i class="fa-solid fa-sliders text-cyber-neonBlue mr-1"></i> 訓練模式:</span>
-                    <select id="mode-select" onchange="changeMode()" class="bg-cyber-bg border border-cyber-border text-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-cyber-neonBlue font-mono-tech">
-                        <option value="all">全域資料庫 (All Database)</option>
-                        <option value="favorites">精選單字庫 (Favorites Only)</option>
-                        <option value="wrongQueue">錯誤矯正特訓 (Error Queue)</option>
-                        <option value="level-basic">級別: 初級日常 (Basic)</option>
-                        <option value="level-tech">級別: 科技商務 (Tech & Business)</option>
-                        <option value="level-advanced">級別: 高級片語 (Advanced)</option>
-                    </select>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="resetSessionStats()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-slate-300 hover:border-slate-500 transition-all font-mono-tech flex items-center gap-1.5">
-                        <i class="fa-solid fa-rotate-right"></i> 重置進度
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card Arena -->
-            <div id="trainer-card-container" class="relative bg-cyber-card border-2 border-cyber-border rounded-2xl p-6 md:p-10 flex flex-col items-center text-center shadow-2xl transition-all duration-300">
-                <!-- Top Badge Row -->
-                <div class="w-full flex items-center justify-between mb-4">
-                    <span id="card-category" class="px-3 py-1 rounded-full bg-blue-950 border border-blue-600 text-blue-300 text-xs font-mono-tech tracking-wider uppercase">
-                        Category
-                    </span>
-                    <button onclick="toggleCurrentFavorite()" id="favorite-btn" class="text-slate-500 hover:text-cyber-neonYellow text-xl transition-colors" title="加入精選單字庫">
-                        <i class="fa-regular fa-star"></i>
-                    </button>
-                </div>
-
-                <!-- Word Display -->
-                <div class="my-6">
-                    <h2 id="card-word" class="font-cyber font-black text-4xl md:text-6xl text-white tracking-wide mb-2 drop-shadow-md">
-                        Loading...
-                    </h2>
-                    <p id="card-phonetic" class="text-cyber-neonBlue font-mono-tech text-lg tracking-widest opacity-80"></p>
-                </div>
-
-                <!-- Meaning & Example -->
-                <div class="max-w-xl bg-cyber-bg/70 border border-cyber-border/50 rounded-xl p-4 mb-8 text-left w-full">
-                    <div class="text-xs font-mono-tech text-slate-400 mb-1 flex items-center gap-1">
-                        <i class="fa-solid fa-terminal text-cyber-neonBlue"></i> 中文釋義:
-                    </div>
-                    <div id="card-meaning" class="text-slate-200 font-medium text-base mb-3">請稍候...</div>
-                    <div class="text-xs font-mono-tech text-slate-400 mb-1 flex items-center gap-1">
-                        <i class="fa-solid fa-quote-left text-cyber-neonPink"></i> 實戰例句:
-                    </div>
-                    <div id="card-example" class="text-slate-300 text-sm italic">...</div>
-                </div>
-
-                <!-- Audio Play Button -->
-                <div class="flex items-center gap-4 mb-8">
-                    <button onclick="speakCurrentWord()" class="group relative px-6 py-3 rounded-xl bg-blue-950 border border-cyber-neonBlue text-cyber-neonBlue font-cyber text-sm tracking-wider shadow-neon-blue hover:bg-blue-900 transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-volume-high text-lg"></i> 播放正確發音
-                    </button>
-                </div>
-
-                <!-- Interactive Record / Speech Recognition Area -->
-                <div class="w-full max-w-md flex flex-col items-center gap-4">
-                    <button id="record-btn" onclick="toggleSpeechRecognition()" class="w-20 h-20 rounded-full bg-slate-900 border-2 border-cyber-neonBlue text-cyber-neonBlue flex items-center justify-center text-3xl shadow-neon-blue hover:scale-105 active:scale-95 transition-all">
-                        <i class="fa-solid fa-microphone"></i>
-                    </button>
-                    <div id="record-status" class="text-xs font-mono-tech text-slate-400 tracking-wider">
-                        點擊麥克風開始跟讀發音
-                    </div>
-
-                    <!-- Waveform Animation Container (Hidden by default) -->
-                    <div id="waveform-box" class="hidden items-center justify-center gap-1.5 h-12 w-full bg-slate-950/80 border border-cyber-border rounded-xl">
-                        <div class="w-1 bg-cyber-neonBlue rounded-full wave-bar"></div>
-                        <div class="w-1 bg-cyber-neonBlue rounded-full wave-bar"></div>
-                        <div class="w-1 bg-cyber-neonBlue rounded-full wave-bar"></div>
-                        <div class="w-1 bg-cyber-neonBlue rounded-full wave-bar"></div>
-                        <div class="w-1 bg-cyber-neonBlue rounded-full wave-bar"></div>
-                        <div class="w-1 bg-cyber-neonBlue rounded-full wave-bar"></div>
-                        <span class="text-xs font-mono-tech text-cyber-neonBlue ml-2 animate-pulse">正在接收語音神經頻譜...</span>
-                    </div>
-
-                    <!-- Recognition Feedback Box -->
-                    <div id="feedback-box" class="w-full hidden p-4 rounded-xl border text-left transition-all">
-                        <div class="flex items-center justify-between mb-1">
-                            <span id="feedback-title" class="font-cyber font-bold text-sm tracking-wide">辨識結果</span>
-                            <span id="feedback-score" class="font-mono-tech text-xs px-2 py-0.5 rounded"></span>
-                        </div>
-                        <div class="text-xs font-mono-tech text-slate-300 mt-1">
-                            辨識文字: <span id="recognized-text" class="text-white font-bold underline"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Navigation Controls -->
-                <div class="w-full flex items-center justify-between mt-8 pt-6 border-t border-cyber-border/60">
-                    <button onclick="prevCard()" class="px-4 py-2 rounded-lg bg-cyber-bg border border-cyber-border text-xs font-mono-tech text-slate-300 hover:text-white hover:border-slate-500 transition-all">
-                        <i class="fa-solid fa-arrow-left mr-1"></span> 上一個
-                    </button>
-                    <span id="card-progress-text" class="text-xs font-mono-tech text-slate-400">0 / 0</span>
-                    <button onclick="nextCard()" class="px-4 py-2 rounded-lg bg-blue-950/60 border border-cyber-neonBlue text-xs font-cyber text-cyber-neonBlue hover:bg-blue-900 transition-all">
-                        下一個 <i class="fa-solid fa-arrow-right ml-1"></i>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- ================= SECTION 2: LIBRARY ================= -->
-        <section id="section-library" class="hidden flex flex-col gap-4">
-            <div class="bg-cyber-card border border-cyber-border rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="relative w-full md:w-80">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-sm"></i>
-                    <input type="text" id="lib-search" oninput="renderLibraryList()" placeholder="搜尋單字、釋義..." class="w-full bg-cyber-bg border border-cyber-border rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyber-neonBlue font-mono-tech">
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="filterLibCategory('all')" class="lib-filter-btn px-3 py-1.5 rounded-lg border border-cyber-neonBlue bg-blue-950 text-xs text-cyber-neonBlue font-mono-tech">全部</button>
-                    <button onclick="filterLibCategory('favorites')" class="lib-filter-btn px-3 py-1.5 rounded-lg border border-cyber-border bg-cyber-bg text-xs text-slate-400 font-mono-tech"><i class="fa-solid fa-star text-cyber-neonYellow mr-1"></i> 精選</button>
-                    <button onclick="filterLibCategory('tech')" class="lib-filter-btn px-3 py-1.5 rounded-lg border border-cyber-border bg-cyber-bg text-xs text-slate-400 font-mono-tech">科技商務</button>
-                </div>
-            </div>
-
-            <!-- Words Grid -->
-            <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Dynamic cards injected via JS -->
-            </div>
-        </section>
-
-        <!-- ================= SECTION 3: WRONG QUEUE ================= -->
-        <section id="section-wrong" class="hidden flex flex-col gap-4">
-            <div class="bg-cyber-card border border-cyber-border rounded-xl p-6 text-center">
-                <div class="w-12 h-12 rounded-full bg-pink-950 border border-cyber-neonPink text-cyber-neonPink mx-auto flex items-center justify-center text-xl mb-3 shadow-neon-pink">
-                    <i class="fa-solid fa-shield-cat"></i>
-                </div>
-                <h3 class="font-cyber font-bold text-lg text-white mb-1">錯誤矯正特訓專區</h3>
-                <p class="text-xs text-slate-400 font-mono-tech max-w-md mx-auto mb-4">
-                    系統會自動攔截您在訓練中唸錯的單字，並在經過數題後排入複習迴圈。徹底擊破您的發音盲點！
-                </p>
-                <div id="wrong-container" class="flex flex-col gap-3">
-                    <!-- Wrong items populated here -->
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="mt-auto border-t border-cyber-border/60 bg-cyber-card/60 py-3 text-center text-xs font-mono-tech text-slate-500">
-        NEURAL-SYNC SYSTEM &copy; 2026 // WEB SPEECH API SECURE PROTOCOL
-    </footer>
-
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-cyber-card border border-cyber-neonBlue text-white px-4 py-3 rounded-xl shadow-neon-blue flex items-center gap-3">
-        <i id="toast-icon" class="fa-solid fa-circle-check text-cyber-neonGreen text-lg"></i>
-        <div class="text-sm font-mono-tech" id="toast-msg">提示訊息</div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        /* ================= 1. WORD DATABASE ================= */
-        const rawVocabDatabase = [
-            { id: 1, word: "Neural", phonetic: "/ˈnʊrəl/", category: "Tech & Business", level: "level-tech", meaning: "神經元的、神經系統的", example: "Neural networks process information similarly to human brains." },
-            { id: 2, word: "Algorithm", phonetic: "/ˈælɡəˌrɪðəm/", category: "Tech & Business", level: "level-tech", meaning: "演算法、計算程序", example: "The recommendation algorithm suggests relevant items." },
-            { id: 3, word: "Encryption", phonetic: "/ɪnˈkrɪpʃən/", category: "Tech & Business", level: "level-tech", meaning: "加密、密碼編譯", example: "End-to-end encryption ensures secure communication." },
-            { id: 4, word: "Protocol", phonetic: "/ˈproʊtəˌkɔl/", category: "Tech & Business", level: "level-tech", meaning: "協定、通訊協定、規約", example: "All devices must follow the network communication protocol." },
-            { id: 5, word: "Synchronize", phonetic: "/ˈsɪŋkrəˌnaɪz/", category: "Tech & Business", level: "level-tech", meaning: "使同步、同時發生", example: "Data will synchronize automatically across all your devices." },
-            { id: 6, word: "Architecture", phonetic: "/ˈɑrkəˌtɛktʃər/", category: "Tech & Business", level: "level-tech", meaning: "架構、結構設計", example: "The software architecture is designed for high scalability." },
-            { id: 7, word: "Breakthrough", phonetic: "/ˈbreɪkˌθru/", category: "Advanced", level: "level-advanced", meaning: "重大突破、重大發現", example: "Scientists made a major breakthrough in quantum computing." },
-            { id: 8, word: "Resilient", phonetic: "/rɪˈzɪliənt/", category: "Advanced", level: "level-advanced", meaning: "具彈性的、有韌性的、復原力強的", example: "We need a resilient supply chain to withstand global shocks." },
-            { id: 9, word: "Innovative", phonetic: "/ˈɪnəˌveɪtɪv/", category: "Advanced", level: "level-advanced", meaning: "創新的、革新的", example: "Her innovative approach solved the long-standing bug." },
-            { id: 10, word: "Optimization", phonetic: "/ˌɑptəməˈzeɪʃən/", category: "Tech & Business", level: "level-tech", meaning: "最佳化、最優化", example: "Database optimization significantly reduced query latency." },
-            { id: 11, word: "Ambition", phonetic: "/æmˈbɪʃən/", category: "Daily Basic", level: "level-basic", meaning: "抱負、野心、追求", example: "He has a strong ambition to excel in AI research." },
-            { id: 12, word: "Collaborate", phonetic: "/kəˈlæbəˌreɪt/", category: "Daily Basic", level: "level-basic", meaning: "合作、協力", example: "Teams collaborate remotely using cloud platforms." },
-            { id: 13, word: "Perspective", phonetic: "/pərˈspɛktɪv/", category: "Daily Basic", level: "level-basic", meaning: "觀點、視角、遠景", example: "Try to look at the problem from a different perspective." },
-            { id: 14, word: "Autonomous", phonetic: "/ɔˈtɑnəməs/", category: "Tech & Business", level: "level-tech", meaning: "自主的、自動駕駛的", example: "Autonomous vehicles rely heavily on real-time sensors." },
-            { id: 15, word: "Vulnerability", phonetic: "/ˌvʌlnərəˈbɪləti/", category: "Advanced", level: "level-advanced", meaning: "脆弱性、漏洞、弱點", example: "Security patches were released to fix the system vulnerability." }
+        // 100 個精選英文單字、音標、中文與例句
+        const vocabList = [
+            { en: "algorithm", phonetic: "/ˈælɡəˌrɪðəm/", zh: "演算法", ex: "The search algorithm returns results instantly." },
+            { en: "architecture", phonetic: "/ˈɑːrkɪtektʃər/", zh: "架構", ex: "Software architecture is crucial for system scaling." },
+            { en: "bandwidth", phonetic: "/ˈbændwɪdθ/", zh: "頻寬", ex: "High-speed networks require large bandwidth." },
+            { en: "binary", phonetic: "/ˈbaɪnəri/", zh: "二進位", ex: "Computers process data in binary code." },
+            { en: "cloud", phonetic: "/klaʊd/", zh: "雲端", ex: "All project files are stored in the cloud." },
+            { en: "compile", phonetic: "/kəmˈpaɪl/", zh: "編譯", ex: "The compiler found three syntax errors." },
+            { en: "cyber", phonetic: "/ˈsaɪbər/", zh: "網路的、電腦的", ex: "Cyber security is a top priority for banks." },
+            { en: "database", phonetic: "/ˈdeɪtəˌbeɪs/", zh: "資料庫", ex: "User profiles are saved in a PostgreSQL database." },
+            { en: "debug", phonetic: "/diːˈbʌɡ/", zh: "除錯", ex: "It took hours to debug the authentication module." },
+            { en: "encryption", phonetic: "/ɪnˈkrɪpʃn/", zh: "加密", ex: "End-to-end encryption protects your privacy." },
+            { en: "firewall", phonetic: "/ˈfaɪərwɔːl/", zh: "防火牆", ex: "The firewall blocked unauthorized access." },
+            { en: "hardware", phonetic: "/ˈhɑːrdwɛr/", zh: "硬體", ex: "Upgrading hardware improves processing speed." },
+            { en: "interface", phonetic: "/ˈɪntərˌfeɪs/", zh: "介面", ex: "The application features a clean user interface." },
+            { en: "network", phonetic: "/ˈnɛtwɜːrk/", zh: "網路", ex: "Devices communicate across a local network." },
+            { en: "protocol", phonetic: "/ˈproʊtəˌkɔːl/", zh: "協定", ex: "HTTP is the standard web transfer protocol." },
+            { en: "query", phonetic: "/ˈkwɪri/", zh: "查詢", ex: "Run a SQL query to retrieve customer data." },
+            { en: "router", phonetic: "/ˈraʊtər/", zh: "路由器", ex: "The wireless router covers the entire office." },
+            { en: "software", phonetic: "/ˈsɔːftwɛr/", zh: "軟體", ex: "Always keep your operating system software updated." },
+            { en: "terminal", phonetic: "/ˈtɜːrmɪnl/", zh: "終端機", ex: "Type the command in the terminal window." },
+            { en: "virtual", phonetic: "/ˈvɜːrtʃuəl/", zh: "虛擬的", ex: "Virtual reality offers immersive gameplay." },
+            { en: "analyze", phonetic: "/ˈænəˌlaɪz/", zh: "分析", ex: "Data scientists analyze consumer behavior." },
+            { en: "browser", phonetic: "/ˈbraʊzər/", zh: "瀏覽器", ex: "Chrome is a popular web browser." },
+            { en: "cache", phonetic: "/kæʃ/", zh: "快取", ex: "Clear your browser cache to see updates." },
+            { en: "device", phonetic: "/dɪˈvaɪs/", zh: "裝置", ex: "Connect your mobile device via Bluetooth." },
+            { en: "ethernet", phonetic: "/ˈiːðərnɛt/", zh: "乙太網路", ex: "An ethernet cable provides stable internet." },
+            { en: "format", phonetic: "/ˈfɔːrmæt/", zh: "格式", ex: "Save the document in PDF format." },
+            { en: "gateway", phonetic: "/ˈɡeɪtˌweɪ/", zh: "閘道器", ex: "The payment gateway processed the transaction." },
+            { en: "hosting", phonetic: "/ˈhoʊstɪŋ/", zh: "主機代管", ex: "Web hosting services keep sites online 24/7." },
+            { en: "inquiry", phonetic: "/ɪnˈkwɪri/", zh: "詢問", ex: "Customer service handles technical inquiries." },
+            { en: "javascript", phonetic: "/ˈdʒɑːvəˌskrɪpt/", zh: "JavaScript 語言", ex: "JavaScript runs interactive web elements." },
+            { en: "kernel", phonetic: "/ˈkɜːrnl/", zh: "核心", ex: "The operating system kernel manages memory." },
+            { en: "latency", phonetic: "/ˈleɪtənsi/", zh: "延遲", ex: "Online gamers strive for ultra-low latency." },
+            { en: "malware", phonetic: "/ˈmælˌwɛr/", zh: "惡意軟體", ex: "Antivirus software detects and removes malware." },
+            { en: "node", phonetic: "/noʊd/", zh: "節點", ex: "Each server acts as a node in the network." },
+            { en: "packet", phonetic: "/ˈpækɪt/", zh: "封包", ex: "Data is transmitted in small network packets." },
+            { en: "quantum", phonetic: "/ˈkwɑːntəm/", zh: "量子", ex: "Quantum computing solves complex equations fast." },
+            { en: "repository", phonetic: "/rɪˈpɑːzətɔːri/", zh: "儲存庫", ex: "Push your latest commit to the Git repository." },
+            { en: "syntax", phonetic: "/ˈsɪntæks/", zh: "語法", ex: "Check your code syntax for missing semicolons." },
+            { en: "thread", phonetic: /θrɛd/, zh: "執行緒", ex: "Multithreading improves CPU performance." },
+            { en: "utility", phonetic: "/juːˈtɪlɪti/", zh: "公用程式", ex: "Disk cleanup is a useful system utility." },
+            { en: "version", phonetic: "/ˈvɜːrʒn/", zh: "版本", ex: "Always check the release version notes." },
+            { en: "widget", phonetic: "/ˈwɪdʒɪt/", zh: "小工具", ex: "Add a weather widget to your dashboard." },
+            { en: "bandwidth", phonetic: "/ˈbændwɪdθ/", zh: "頻寬", ex: "Video streaming demands high bandwidth." },
+            { en: "yaml", phonetic: "/ˈjæməl/", zh: "YAML 格式", ex: "Configuration files are often written in YAML." },
+            { en: "zone", phonetic: "/zoʊn/", zh: "區域", ex: "Configure your firewall security zones." },
+            { en: "backup", phonetic: "/ˈbækˌʌp/", zh: "備份", ex: "Always create a daily database backup." },
+            { en: "cluster", phonetic: "/ˈklʌstər/", zh: "叢集", ex: "Kubernetes manages container clusters." },
+            { en: "domain", phonetic: "/doʊˈmeɪn/", zh: "網域", ex: "Register a catchy domain name for your startup." },
+            { en: "extension", phonetic: "/ɪkˈstɛnʃn/", zh: "副檔名/擴充功能", ex: "Install browser extensions for productivity." },
+            { en: "firmware", phonetic: "/ˈfɜːrmˌwɛr/", zh: "韌體", ex: "Update your router firmware for security." },
+            { en: "graphic", phonetic: "/ˈɡræfɪk/", zh: "圖形", ex: "High-end games require powerful graphics cards." },
+            { en: "hybrid", phonetic: "/ˈhaɪbrɪd/", zh: "混合式", ex: "Many companies adopt a hybrid cloud model." },
+            { en: "index", phonetic: "/ˈɪndɛks/", zh: "索引", ex: "Database indexes speed up search queries." },
+            { en: "junction", phonetic: "/ˈdʒʌŋkʃn/", zh: "連接點", ex: "Network traffic converges at the junction." },
+            { en: "keyword", phonetic: "/ˈkiːˌwɜːrd/", zh: "關鍵字", ex: "Optimize your web page with target keywords." },
+            { en: "log", phonetic: "/lɔːɡ/", zh: "日誌", ex: "Check the error log to diagnose the crash." },
+            { en: "monitor", phonetic: "/ˈmɑːnɪtər/", zh: "監控螢幕", ex: "System admins monitor server health 24/7." },
+            { en: "netizen", phonetic: "/ˈnɛtɪzən/", zh: "網民", ex: "Netizens debated the new tech regulation." },
+            { en: "online", phonetic: "/ˈɑːnˌlaɪn/", zh: "線上", ex: "All course materials are available online." },
+            { en: "patch", phonetic: "/pætʃ/", zh: "修補程式", ex: "Apply the latest security patch immediately." },
+            { en: "queue", phonetic: "/kjuː/", zh: "佇列", ex: "Print jobs are held in a processing queue." },
+            { en: "runtime", phonetic: "/ˈrʌnˌtaɪm/", zh: "執行階段", ex: "Node.js provides a JavaScript runtime environment." },
+            { en: "script", phonetic: /skrɪpt/, zh: "腳本", ex: "Automate routine backups with a Python script." },
+            { en: "token", phonetic: "/ˈtoʊkən/", zh: "權杖/代幣", ex: "API requests require a valid bearer token." },
+            { en: "upload", phonetic: "/ˈʌpˌloʊd/", zh: "上傳", ex: "Upload your presentation file to the server." },
+            { en: "vector", phonetic: "/ˈvɛktər/", zh: "向量", ex: "AI embeddings store text as dense vectors." },
+            { en: "webcast", phonetic: "/ˈwɛbˌkæst/", zh: "網路廣播", ex: "Tune in to our live technical webcast." },
+            { en: "archive", phonetic: "/ˈɑːrkaɪv/", zh: "歸檔", ex: "Compress old log files into an archive." },
+            { en: "bot", phonetic: "/bɑːt/", zh: "機器人", ex: "Chatbots handle routine customer questions." },
+            { en: "client", phonetic: "/ˈklaɪənt/", zh: "客戶端", ex: "The web client sends requests to the server." },
+            { en: "deploy", phonetic: "/dɪˈplɔɪ/", zh: "部署", ex: "Deploy the web app to production tonight." },
+            { en: "engine", phonetic: "/ˈɛndʒɪn/", zh: "引擎", ex: "Search engines index billions of web pages." },
+            { en: "framework", phonetic: "/ˈfreɪmwɜːrk/", zh: "框架", ex: "React is a popular frontend web framework." },
+            { en: "grid", phonetic: "/ɡrɪd/", zh: "網格", ex: "CSS grid layout aligns UI elements neatly." },
+            { en: "host", phonetic: "/hoʊst/", zh: "主機", ex: "The website is hosted on AWS servers." },
+            { en: "icon", phonetic: "/ˈaɪkɑːn/", zh: "圖示", ex: "Click the gear icon to open settings." },
+            { en: "java", phonetic: "/ˈdʒɑːvə/", zh: "Java 語言", ex: "Enterprise backend systems often use Java." },
+            { en: "keyboard", phonetic: "/ˈkiːbɔːrd/", zh: "鍵盤", ex: "Mechanical keyboards offer great tactile feedback." },
+            { en: "link", phonetic: "/lɪŋk/", zh: "連結", ex: "Click the download link to get the installer." },
+            { en: "macro", phonetic: "/ˈmækroʊ/", zh: "巨集", ex: "Excel macros automate repetitive tasks." },
+            { en: "navigation", phonetic: "/ˌnævɪˈɡeɪʃn/", zh: "導航", ex: "Clear website navigation improves UX." },
+            { en: "output", phonetic: "/ˈaʊtˌpʊt/", zh: "輸出", ex: "Check the console for program output." },
+            { en: "plugin", phonetic: "/ˈplʌɡˌɪn/", zh: "外掛程式", ex: "Install a SEO plugin for your WordPress site." },
+            { en: "quantum", phonetic: "/ˈkwɑːntəm/", zh: "量子", ex: "Quantum bits can exist in multiple states." },
+            { en: "release", phonetic: "/rɪˈliːs/", zh: "發布", ex: "Version 2.0 is scheduled for release tomorrow." },
+            { en: "source", phonetic: "/sɔːrs/", zh: "原始碼", ex: "Open source projects encourage collaboration." },
+            { en: "tablet", phonetic: "/ˈtæblɪt/", zh: "平板電腦", ex: "Designers use tablets for digital sketching." },
+            { en: "utility", phonetic: "/juːˈtɪlɪti/", zh: "公用程式", ex: "System utilities help maintain peak performance." },
+            { en: "virtualization", phonetic: "/ˌvɜːrtʃuələˈzeɪʃn/", zh: "虛擬化", ex: "Virtualization reduces server hardware costs." },
+            { en: "wireless", phonetic: "/ˈwaɪrləs/", zh: "無線的", ex: "Connect to the office wireless network." },
+            { en: "xml", phonetic: "/ˌɛks ˌɛm ˈɛl/", zh: "XML 格式", ex: "XML is used for structured data exchange." },
+            { en: "youtube", phonetic: "/ˈjuːˌtuːb/", zh: "YouTube 平台", ex: "Tutorial videos are hosted on YouTube." },
+            { en: "zip", phonetic: "/zɪp/", zh: "壓縮檔", ex: "Extract the files from the zip archive." },
+            { en: "adapter", phonetic: "/əˈdæptər/", zh: "轉接器", ex: "Plug the USB-C adapter into your laptop." },
+            { en: "binary", phonetic: "/ˈbaɪnəri/", zh: "二進位", ex: "Binary search is an efficient algorithm." },
+            { en: "compile", phonetic: "/kəmˈpaɪl/", zh: "編譯", ex: "Run the build script to compile the assets." },
+            { en: "desktop", phonetic: "/ˈdɛskˌtɑːp/", zh: "桌面", ex: "Save temporary files on your desktop." },
+            { en: "emulator", phonetic: "/ˈɛmjəˌleɪtər/", zh: "模擬器", ex: "Test mobile apps using an Android emulator." },
+            { en: "firmware", phonetic: "/ˈfɜːrmˌwɛr/", zh: "韌體", ex: "Flashing new firmware fixes bugs." },
+            { en: "gateway", phonetic: "/ˈɡeɪtˌweɪ/", zh: "閘道器", ex: "Secure gateways protect corporate networks." }
         ];
 
-        // State Management
-        let vocabulary = [...rawVocabDatabase];
-        let favoriteIds = JSON.parse(localStorage.getItem('cyber_favorites')) || [1, 2, 5];
-        let wrongQueue = JSON.parse(localStorage.getItem('cyber_wrong_queue')) || [];
-        
-        let currentMode = 'all';
-        let activeList = [];
+        // 狀態變數
         let currentIndex = 0;
-        
-        // Stats
-        let statsTotal = parseInt(localStorage.getItem('cyber_stat_total')) || 0;
-        let statsCorrect = parseInt(localStorage.getItem('cyber_stat_correct')) || 0;
-        let statsStreak = parseInt(localStorage.getItem('cyber_stat_streak')) || 0;
-
-        // Speech Recognition instance
-        let recognition = null;
+        let currentFilter = 'all';
+        let starredWords = JSON.parse(localStorage.getItem('cyber_starred')) || [];
+        let errorQueue = JSON.parse(localStorage.getItem('cyber_errors')) || [];
+        let combo = 0;
+        let totalAttempts = 0;
+        let totalCorrect = 0;
+        let masteredSet = new Set(JSON.parse(localStorage.getItem('cyber_mastered')) || []);
         let isRecording = false;
+        let recognition = null;
 
-        // Initialization on window load
-        window.onload = function() {
-            initSpeechRecognition();
-            changeMode();
-            updateStatsUI();
-            renderLibraryList();
-            renderWrongQueue();
-        };
-
-        /* ================= 2. SPEECH SYNTHESIS & RECOGNITION ================= */
-        function speakCurrentWord() {
-            if (!activeList.length) return;
-            const currentItem = activeList[currentIndex];
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Stop previous utterance
-                const utterance = new SpeechSynthesisUtterance(currentItem.word);
-                utterance.lang = 'en-US';
-                utterance.rate = 0.9; // Slightly slower for training clarity
-                window.speechSynthesis.speak(utterance);
-                showToast(`正在發音: ${currentItem.word}`, 'info');
-            } else {
-                showToast('您的瀏覽器不支援語音合成', 'error');
-            }
-        }
-
-        function initSpeechRecognition() {
+        // 初始化 Web Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                showToast('您的瀏覽器不支援 Web Speech Recognition，建議使用 Chrome', 'error');
-                return;
-            }
-
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
             recognition.interimResults = false;
             recognition.maxAlternatives = 1;
 
-            recognition.onstart = function() {
-                isRecording = true;
-                document.getElementById('record-btn').classList.add('bg-blue-900', 'border-cyber-neonGreen', 'animate-pulse');
-                document.getElementById('record-status').innerText = '聆聽中... 請清晰跟讀單字';
-                document.getElementById('waveform-box').classList.remove('hidden');
-                document.getElementById('waveform-box').classList.add('flex');
+            recognition.onresult = (event) => {
+                const rawText = event.results[0][0].transcript;
+                processRecognitionResult(rawText);
             };
 
-            recognition.onresult = function(event) {
-                const speechToText = event.results[0][0].transcript;
-                processRecognitionResult(speechToText);
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error", event.error);
+                stopRecordUI();
+                showFeedback("辨識錯誤或超時，請再試一次", "wrong");
             };
 
-            recognition.onerror = function(event) {
-                console.error('Speech recognition error', event.error);
-                stopRecordingUI();
-                showToast('語音辨識發生錯誤或未收到語音', 'error');
+            recognition.onend = () => {
+                stopRecordUI();
             };
-
-            recognition.onend = function() {
-                stopRecordingUI();
-            };
+        } else {
+            alert("您的瀏覽器不支援 Web Speech Recognition (建議使用 Google Chrome)");
         }
 
-        function toggleSpeechRecognition() {
-            if (!recognition) {
-                showToast('語音辨識尚未初始化或不支援', 'error');
+        // 初始化頁面
+        document.addEventListener('DOMContentLoaded', () => {
+            renderWordList();
+            loadWord(0);
+            updateStats();
+        });
+
+        function getActiveList() {
+            if (currentFilter === 'starred') {
+                return vocabList.filter((w, idx) => starredWords.includes(idx));
+            } else if (currentFilter === 'errors') {
+                return errorQueue.map(idx => vocabList[idx]).filter(Boolean);
+            }
+            return vocabList;
+        }
+
+        function loadWord(index) {
+            const activeList = getActiveList();
+            if (activeList.length === 0) {
+                document.getElementById('currentWord').innerText = "NO_DATA";
+                document.getElementById('currentPhonetic').innerText = "[ -- ]";
+                document.getElementById('currentTranslation').innerText = "此分類目前沒有單字";
+                document.getElementById('currentExample').innerText = `""`;
+                document.getElementById('wordBadge').innerText = "STATUS: EMPTY";
                 return;
             }
+
+            if (index >= activeList.length) index = 0;
+            if (index < 0) index = activeList.length - 1;
+
+            currentIndex = index;
+            const wordObj = activeList[currentIndex];
+            const originalGlobalIdx = vocabList.findIndex(w => w.en === wordObj.en);
+
+            // 更新 UI
+            document.getElementById('currentWord').innerText = wordObj.en;
+            document.getElementById('currentPhonetic').innerText = wordObj.phonetic;
+            document.getElementById('currentTranslation').innerText = wordObj.zh;
+            document.getElementById('currentExample').innerText = `"${wordObj.ex}"`;
+            document.getElementById('wordBadge').innerText = `INDEX: #${String(originalGlobalIdx + 1).padStart(3, '0')} // 核心單字庫`;
+
+            // 更新星號按鈕狀態
+            const starBtn = document.getElementById('starBtn');
+            if (starredWords.includes(originalGlobalIdx)) {
+                starBtn.classList.add('starred');
+                starBtn.innerText = "⭐ 已加入精選";
+            } else {
+                starBtn.classList.remove('starred');
+                starBtn.innerText = "⭐ 加入精選";
+            }
+
+            // 重置反饋區
+            document.getElementById('feedbackBox').innerHTML = `<span style="color: var(--text-muted)">請點擊「開始跟讀」並念出上方單字進行神經語音比對</span>`;
+
+            highlightSidebarItem(originalGlobalIdx);
+        }
+
+        // 朗讀單字 (SpeechSynthesis)
+        function speakCurrentWord() {
+            const activeList = getActiveList();
+            if (activeList.length === 0) return;
+            const wordObj = activeList[currentIndex];
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(wordObj.en);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // 控制錄音
+        function toggleRecord() {
+            if (!recognition) {
+                alert("瀏覽器不支援語音辨識");
+                return;
+            }
+
             if (isRecording) {
                 recognition.stop();
             } else {
                 try {
                     recognition.start();
-                } catch(e) {
+                    startRecordUI();
+                } catch (e) {
                     console.error(e);
                 }
             }
         }
 
-        function stopRecordingUI() {
+        function startRecordUI() {
+            isRecording = true;
+            const btn = document.getElementById('recordBtn');
+            btn.classList.add('recording');
+            btn.innerText = "🛑 聆聽中...";
+            showFeedback("🟢 語音神經接收中... 請清晰朗讀單字", "normal");
+        }
+
+        function stopRecordUI() {
             isRecording = false;
-            const btn = document.getElementById('record-btn');
-            if (btn) {
-                btn.classList.remove('bg-blue-900', 'border-cyber-neonGreen', 'animate-pulse');
-            }
-            const statusEl = document.getElementById('record-status');
-            if (statusEl) statusEl.innerText = '點擊麥克風開始跟讀發音';
-            const wave = document.getElementById('waveform-box');
-            if (wave) {
-                wave.classList.remove('flex');
-                wave.classList.add('hidden');
-            }
+            const btn = document.getElementById('recordBtn');
+            btn.classList.remove('recording');
+            btn.innerText = "🎤 開始跟讀";
         }
 
-        /* ================= 3. TEXT NORMALIZATION & COMPARISON ================= */
-        function normalizeText(text) {
-            if (!text) return '';
-            return text
-                .toLowerCase()
-                .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'?!]/g, '') // Remove punctuation
-                .replace(/\s+/g, ' ') // Replace multiple spaces with single
-                .trim();
-        }
+        // 標準化並比對結果
+        function processRecognitionResult(rawText) {
+            const activeList = getActiveList();
+            if (activeList.length === 0) return;
+            const targetWordObj = activeList[currentIndex];
+            const globalIdx = vocabList.findIndex(w => w.en === targetWordObj.en);
 
-        function processRecognitionResult(spokenText) {
-            if (!activeList.length) return;
-            const currentItem = activeList[currentIndex];
-            
-            const normalizedSpoken = normalizeText(spokenText);
-            const normalizedTarget = normalizeText(currentItem.word);
+            // 標準化：轉小寫、去除標點符號與前後空白
+            const cleanedInput = rawText.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").trim();
+            const targetWord = targetWordObj.en.toLowerCase();
 
-            const isCorrect = (normalizedSpoken === normalizedTarget);
+            totalAttempts++;
 
-            // Update stats
-            statsTotal++;
-            if (isCorrect) {
-                statsCorrect++;
-                statsStreak++;
-                showFeedback(true, spokenText, "完美同步！發音精準無誤 (+1 COMBO)");
-                
-                // If it was in wrong queue, remove it if answered correctly
-                removeFromWrongQueue(currentItem.id);
-            } else {
-                statsStreak = 0;
-                showFeedback(false, spokenText, `發音偏離！目標應為: "${currentItem.word}"`);
-                
-                // Add to wrong queue for spaced repetition/retry loop
-                addToWrongQueue(currentItem);
-            }
+            if (cleanedInput === targetWord) {
+                // 答對
+                combo++;
+                totalCorrect++;
+                masteredSet.add(globalIdx);
 
-            updateStatsUI();
-            saveStats();
+                // 從錯題佇列中移除（如果有的話）
+                errorQueue = errorQueue.filter(idx => idx !== globalIdx);
+                localStorage.setItem('cyber_errors', JSON.stringify(errorQueue));
 
-            // Auto advance after 2.5 seconds if correct
-            if (isCorrect) {
+                showFeedback(`⚡ 完美命中！ 辨識結果：「${rawText}」`, "correct");
+                playSuccessSound();
+
+                // 自動跳到下一個
                 setTimeout(() => {
-                    nextCard();
-                }, 2200);
-            }
-        }
-
-        function showFeedback(isCorrect, spokenText, message) {
-            const box = document.getElementById('feedback-box');
-            const title = document.getElementById('feedback-title');
-            const score = document.getElementById('feedback-score');
-            const textEl = document.getElementById('recognized-text');
-
-            box.classList.remove('hidden');
-            textEl.innerText = spokenText || '(無辨識內容)';
-
-            if (isCorrect) {
-                box.className = "w-full p-4 rounded-xl border border-cyber-neonGreen bg-green-950/40 text-left transition-all shadow-neon-green";
-                title.className = "font-cyber font-bold text-sm text-cyber-neonGreen";
-                title.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> 念對了！ [MATCH SUCCESS]`;
-                score.className = "font-mono-tech text-xs px-2 py-0.5 rounded bg-green-900 text-green-200 border border-green-500";
-                score.innerText = "ACCURACY: 100%";
+                    nextWord();
+                }, 1200);
             } else {
-                box.className = "w-full p-4 rounded-xl border border-cyber-neonPink bg-pink-950/40 text-left transition-all shadow-neon-pink";
-                title.className = "font-cyber font-bold text-sm text-cyber-neonPink";
-                title.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> 念錯了！ [MISMATCH ALERT]`;
-                score.className = "font-mono-tech text-xs px-2 py-0.5 rounded bg-pink-900 text-pink-200 border border-pink-500";
-                score.innerText = "MISMATCH";
-            }
-        }
+                // 答錯 -> 錯題過幾題後再次出現（加入佇列循環）
+                combo = 0;
+                if (!errorQueue.includes(globalIdx)) {
+                    errorQueue.push(globalIdx);
+                }
+                localStorage.setItem('cyber_errors', JSON.stringify(errorQueue));
 
-        /* ================= 4. WRONG QUEUE LOGIC ================= */
-        function addToWrongQueue(item) {
-            // Check if already exists
-            const exists = wrongQueue.some(i => i.id === item.id);
-            if (!exists) {
-                wrongQueue.push({ ...item, failCount: 1 });
-            } else {
-                wrongQueue = wrongQueue.map(i => i.id === item.id ? { ...i, failCount: (i.failCount || 1) + 1 } : i);
-            }
-            saveWrongQueue();
-            renderWrongQueue();
-        }
-
-        function removeFromWrongQueue(id) {
-            wrongQueue = wrongQueue.filter(i => i.id !== id);
-            saveWrongQueue();
-            renderWrongQueue();
-        }
-
-        function saveWrongQueue() {
-            localStorage.setItem('cyber_wrong_queue', JSON.stringify(wrongQueue));
-            document.getElementById('wrong-count').innerText = wrongQueue.length;
-        }
-
-        function renderWrongQueue() {
-            const container = document.getElementById('wrong-container');
-            document.getElementById('wrong-count').innerText = wrongQueue.length;
-            
-            if (wrongQueue.length === 0) {
-                container.innerHTML = `<div class="text-xs font-mono-tech text-slate-500 py-6">目前沒有錯誤矯正佇列，表現優異！</div>`;
-                return;
+                showFeedback(`❌ 頻率不符！ 辨識為：「${rawText}」 (正確應為: ${targetWordObj.en})`, "wrong");
             }
 
-            container.innerHTML = wrongQueue.map(item => `
-                <div class="flex items-center justify-between bg-cyber-bg border border-cyber-border p-3 rounded-lg">
-                    <div class="text-left">
-                        <div class="font-cyber font-bold text-cyber-neonPink text-sm">${item.word}</div>
-                        <div class="text-xs text-slate-400 font-mono-tech">${item.meaning}</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="practiceSpecificWord(${item.id})" class="px-3 py-1 bg-blue-950 border border-cyber-neonBlue text-xs text-cyber-neonBlue rounded font-mono-tech hover:bg-blue-900">
-                            立即特訓
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+            localStorage.setItem('cyber_mastered', JSON.stringify([...masteredSet]));
+            updateStats();
+            renderWordList();
         }
 
-        function practiceSpecificWord(id) {
-            const found = vocabulary.find(v => v.id === id);
-            if (found) {
-                activeList = [found];
-                currentIndex = 0;
-                switchTab('trainer');
-                renderCurrentCard();
-            }
+        function showFeedback(text, type) {
+            const box = document.getElementById('feedbackBox');
+            let cls = "";
+            if (type === 'correct') cls = "result-correct";
+            if (type === 'wrong') cls = "result-wrong";
+            box.innerHTML = `<span class="${cls}">${text}</span>`;
         }
 
-        /* ================= 5. NAVIGATION & MODES ================= */
-        function changeMode() {
-            const select = document.getElementById('mode-select');
-            currentMode = select.value;
-
-            if (currentMode === 'all') {
-                activeList = [...vocabulary];
-            } else if (currentMode === 'favorites') {
-                activeList = vocabulary.filter(v => favoriteIds.includes(v.id));
-            } else if (currentMode === 'wrongQueue') {
-                activeList = [...wrongQueue];
-            } else if (currentMode.startsWith('level-')) {
-                activeList = vocabulary.filter(v => v.level === currentMode);
-            }
-
-            // Shuffle slightly or randomize for fun practice
-            shuffleArray(activeList);
-            currentIndex = 0;
-
-            if (activeList.length === 0) {
-                showEmptyCardState();
-            } else {
-                renderCurrentCard();
-            }
+        // 簡單音效模擬 (使用 Web Audio API 嗶聲)
+        function playSuccessSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            } catch(e) {}
         }
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
-
-        function renderCurrentCard() {
-            if (!activeList.length) {
-                showEmptyCardState();
-                return;
-            }
-
-            const item = activeList[currentIndex];
-            document.getElementById('card-category').innerText = item.category;
-            document.getElementById('card-word').innerText = item.word;
-            document.getElementById('card-phonetic').innerText = item.phonetic;
-            document.getElementById('card-meaning').innerText = item.meaning;
-            document.getElementById('card-example').innerText = `"${item.example}"`;
-            document.getElementById('card-progress-text').innerText = `${currentIndex + 1} / ${activeList.length}`;
-
-            // Hide previous feedback
-            document.getElementById('feedback-box').classList.add('hidden');
-
-            // Update favorite star
-            updateFavoriteStarUI(item.id);
-        }
-
-        function showEmptyCardState() {
-            document.getElementById('card-category').innerText = "SYSTEM NOTICE";
-            document.getElementById('card-word').innerText = "無可用字彙";
-            document.getElementById('card-phonetic').innerText = "/nʌn/";
-            document.getElementById('card-meaning').innerText = "此分類目前沒有字彙或已被清空。";
-            document.getElementById('card-example').innerText = `"Please select another training mode or add items to favorites."`;
-            document.getElementById('card-progress-text').innerText = "0 / 0";
-            document.getElementById('feedback-box').classList.add('hidden');
-        }
-
-        function nextCard() {
-            if (!activeList.length) return;
+        // 導航控制
+        function nextWord() {
+            const activeList = getActiveList();
+            if (activeList.length === 0) return;
             currentIndex = (currentIndex + 1) % activeList.length;
-            renderCurrentCard();
+            loadWord(currentIndex);
         }
 
-        function prevCard() {
-            if (!activeList.length) return;
+        function prevWord() {
+            const activeList = getActiveList();
+            if (activeList.length === 0) return;
             currentIndex = (currentIndex - 1 + activeList.length) % activeList.length;
-            renderCurrentCard();
+            loadWord(currentIndex);
         }
 
-        /* ================= 6. FAVORITES & LIBRARY ================= */
-        function toggleCurrentFavorite() {
-            if (!activeList.length) return;
-            const item = activeList[currentIndex];
-            const idx = favoriteIds.indexOf(item.id);
-            if (idx > -1) {
-                favoriteIds.splice(idx, 1);
-                showToast(`已從精選單字移除: ${item.word}`, 'info');
+        // 切換精選
+        function toggleStarCurrent() {
+            const activeList = getActiveList();
+            if (activeList.length === 0) return;
+            const wordObj = activeList[currentIndex];
+            const globalIdx = vocabList.findIndex(w => w.en === wordObj.en);
+
+            const starIdx = starredWords.indexOf(globalIdx);
+            if (starIdx > -1) {
+                starredWords.splice(starIdx, 1);
             } else {
-                favoriteIds.push(item.id);
-                showToast(`已加入精選單字庫: ${item.word}`, 'success');
+                starredWords.push(globalIdx);
             }
-            localStorage.setItem('cyber_favorites', JSON.stringify(favoriteIds));
-            updateFavoriteStarUI(item.id);
-            renderLibraryList();
+            localStorage.setItem('cyber_starred', JSON.stringify(starredWords));
+            loadWord(currentIndex);
+            renderWordList();
         }
 
-        function updateFavoriteStarUI(id) {
-            const btn = document.getElementById('favorite-btn');
-            if (favoriteIds.includes(id)) {
-                btn.innerHTML = `<i class="fa-solid fa-star text-cyber-neonYellow"></i>`;
-            } else {
-                btn.innerHTML = `<i class="fa-regular fa-star text-slate-500"></i>`;
-            }
+        // 過濾頁籤
+        function switchFilter(filter, btnEl) {
+            currentFilter = filter;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            currentIndex = 0;
+            loadWord(0);
+            renderWordList();
         }
 
-        let libFilter = 'all';
-        function filterLibCategory(cat) {
-            libFilter = cat;
-            document.querySelectorAll('.lib-filter-btn').forEach(btn => {
-                btn.classList.remove('border-cyber-neonBlue', 'bg-blue-950', 'text-cyber-neonBlue');
-                btn.classList.add('border-cyber-border', 'bg-cyber-bg', 'text-slate-400');
-            });
-            event.currentTarget.classList.remove('border-cyber-border', 'bg-cyber-bg', 'text-slate-400');
-            event.currentTarget.classList.add('border-cyber-neonBlue', 'bg-blue-950', 'text-cyber-neonBlue');
-            renderLibraryList();
-        }
+        // 渲染側邊單字清單
+        function renderWordList() {
+            const container = document.getElementById('wordListContainer');
+            const activeList = getActiveList();
+            container.innerHTML = '';
 
-        function renderLibraryList() {
-            const searchVal = document.getElementById('lib-search').value.toLowerCase();
-            const grid = document.getElementById('library-grid');
-            document.getElementById('lib-count').innerText = vocabulary.length;
+            document.getElementById('listCounter').innerText = `${activeList.length} Words`;
 
-            let filtered = vocabulary.filter(item => {
-                const matchSearch = item.word.toLowerCase().includes(searchVal) || item.meaning.includes(searchVal);
-                if (libFilter === 'favorites') return matchSearch && favoriteIds.includes(item.id);
-                if (libFilter === 'tech') return matchSearch && item.level === 'level-tech';
-                return matchSearch;
-            });
+            activeList.forEach((w, idx) => {
+                const globalIdx = vocabList.findIndex(item => item.en === w.en);
+                const item = document.createElement('div');
+                item.className = `word-item ${idx === currentIndex ? 'active' : ''}`;
+                item.onclick = () => {
+                    currentIndex = idx;
+                    loadWord(currentIndex);
+                };
 
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-8 text-center text-xs font-mono-tech text-slate-500">找不到符合條件的單字資料。</div>`;
-                return;
-            }
+                const isStarred = starredWords.includes(globalIdx);
+                const isError = errorQueue.includes(globalIdx);
 
-            grid.innerHTML = filtered.map(item => {
-                const isFav = favoriteIds.includes(item.id);
-                return `
-                    <div class="bg-cyber-card border border-cyber-border rounded-xl p-4 flex flex-col justify-between gap-3 hover:border-cyber-neonBlue transition-all">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <span class="text-[10px] font-mono-tech px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300">${item.category}</span>
-                                <h4 class="font-cyber font-bold text-lg text-white mt-1">${item.word}</h4>
-                                <span class="text-xs font-mono-tech text-cyber-neonBlue">${item.phonetic}</span>
-                            </div>
-                            <button onclick="toggleFavFromLib(${item.id})" class="text-lg ${isFav ? 'text-cyber-neonYellow' : 'text-slate-600 hover:text-slate-400'}">
-                                <i class="${isFav ? 'fa-solid fa-star' : 'fa-regular fa-star'}"></i>
-                            </button>
-                        </div>
-                        <p class="text-xs text-slate-300">${item.meaning}</p>
-                        <div class="flex items-center justify-between pt-2 border-t border-cyber-border/40">
-                            <span class="text-[10px] font-mono-tech text-slate-500 italic truncate max-w-[200px]">"${item.example}"</span>
-                            <button onclick="practiceSpecificWord(${item.id})" class="px-2.5 py-1 bg-blue-950/60 border border-cyber-neonBlue text-[10px] font-cyber text-cyber-neonBlue rounded hover:bg-blue-900">
-                                特訓
-                            </button>
-                        </div>
+                let tagHtml = '';
+                if (isStarred) tagHtml += '⭐ ';
+                if (isError) tagHtml += '⚠️ ';
+
+                item.innerHTML = `
+                    <div class="word-item-info">
+                        <div class="en">${tagHtml}${w.en}</div>
+                        <div class="zh">${w.zh}</div>
                     </div>
                 `;
-            }).join('');
-        }
-
-        function toggleFavFromLib(id) {
-            const idx = favoriteIds.indexOf(id);
-            if (idx > -1) {
-                favoriteIds.splice(idx, 1);
-            } else {
-                favoriteIds.push(id);
-            }
-            localStorage.setItem('cyber_favorites', JSON.stringify(favoriteIds));
-            renderLibraryList();
-            if (activeList.length && activeList[currentIndex].id === id) {
-                updateFavoriteStarUI(id);
-            }
-        }
-
-        /* ================= 7. STATS & UI HELPERS ================= */
-        function updateStatsUI() {
-            document.getElementById('stat-total').innerText = statsTotal;
-            const accuracy = statsTotal > 0 ? Math.round((statsCorrect / statsTotal) * 100) : 100;
-            document.getElementById('stat-accuracy').innerText = accuracy + '%';
-            document.getElementById('stat-streak').innerText = statsStreak;
-        }
-
-        function saveStats() {
-            localStorage.setItem('cyber_stat_total', statsTotal);
-            localStorage.setItem('cyber_stat_correct', statsCorrect);
-            localStorage.setItem('cyber_stat_streak', statsStreak);
-        }
-
-        function resetSessionStats() {
-            statsTotal = 0;
-            statsCorrect = 0;
-            statsStreak = 0;
-            saveStats();
-            updateStatsUI();
-            showToast('統計數據已重置', 'info');
-        }
-
-        function switchTab(tabName) {
-            ['trainer', 'library', 'wrong'].forEach(t => {
-                document.getElementById(`section-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).className = "px-5 py-2.5 font-cyber text-sm tracking-wider rounded-t-lg transition-all border border-transparent text-slate-400 hover:text-slate-200 hover:bg-cyber-card/50 flex items-center gap-2";
+                container.appendChild(item);
             });
-
-            document.getElementById(`section-${tabName}`).classList.remove('hidden');
-            const activeTab = document.getElementById(`tab-${tabName}`);
-            activeTab.className = "px-5 py-2.5 font-cyber text-sm tracking-wider rounded-t-lg transition-all border-t border-x border-cyber-neonBlue bg-cyber-card text-cyber-neonBlue shadow-neon-blue flex items-center gap-2";
         }
 
-        function showToast(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-msg');
-            const toastIcon = document.getElementById('toast-icon');
+        function highlightSidebarItem(globalIdx) {
+            renderWordList();
+        }
 
-            toastMsg.innerText = msg;
-            if (type === 'success') {
-                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 pointer-events-none bg-cyber-card border border-cyber-neonGreen text-white px-4 py-3 rounded-xl shadow-neon-green flex items-center gap-3";
-                toastIcon.className = "fa-solid fa-circle-check text-cyber-neonGreen text-lg";
-            } else if (type === 'error') {
-                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 pointer-events-none bg-cyber-card border border-cyber-neonPink text-white px-4 py-3 rounded-xl shadow-neon-pink flex items-center gap-3";
-                toastIcon.className = "fa-solid fa-triangle-exclamation text-cyber-neonPink text-lg";
-            } else {
-                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 pointer-events-none bg-cyber-card border border-cyber-neonBlue text-white px-4 py-3 rounded-xl shadow-neon-blue flex items-center gap-3";
-                toastIcon.className = "fa-solid fa-circle-info text-cyber-neonBlue text-lg";
-            }
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+        // 更新數據面板
+        function updateStats() {
+            document.getElementById('comboCount').innerText = combo;
+            const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+            document.getElementById('accuracyRate').innerText = accuracy + '%';
+            document.getElementById('errorQueueCount').innerText = errorQueue.length;
+            document.getElementById('masteredCount').innerText = `${masteredSet.size} / 100`;
         }
     </script>
 </body>
